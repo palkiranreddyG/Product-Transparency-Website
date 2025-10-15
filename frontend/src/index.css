@@ -1,0 +1,202 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Health, Wisdom, Virtue Design System */
+    --background: 0 0% 100%;
+    --foreground: 145 15% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 145 15% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 145 15% 15%;
+
+    /* Health - Emerald Green */
+    --primary: 145 63% 42%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 145 63% 55%;
+
+    /* Trust - Sapphire Blue */
+    --secondary: 217 91% 60%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-glow: 217 91% 70%;
+
+    /* Muted - Soft gray with green undertone */
+    --muted: 145 10% 96%;
+    --muted-foreground: 145 10% 45%;
+
+    /* Virtue - Amber Accent */
+    --accent: 38 92% 50%;
+    --accent-foreground: 0 0% 100%;
+    --accent-glow: 38 92% 65%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 145 15% 88%;
+    --input: 145 15% 88%;
+    --ring: 145 63% 42%;
+
+    --radius: 0.75rem;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(145 63% 42%), hsl(145 63% 55%));
+    --gradient-secondary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 70%));
+    --gradient-hero: linear-gradient(135deg, hsl(145 63% 42%), hsl(217 91% 60%));
+    --gradient-virtue: linear-gradient(135deg, hsl(38 92% 50%), hsl(38 92% 65%));
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(145 30% 98%));
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(145 63% 42% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(145 63% 42% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(145 63% 42% / 0.1);
+    --shadow-xl: 0 20px 25px -5px hsl(145 63% 42% / 0.15);
+    --shadow-glow: 0 0 30px hsl(145 63% 55% / 0.3);
+    --shadow-glow-secondary: 0 0 30px hsl(217 91% 70% / 0.3);
+    --shadow-glow-accent: 0 0 30px hsl(38 92% 65% / 0.3);
+
+    /* Glass effect */
+    --glass-bg: hsl(0 0% 100% / 0.7);
+    --glass-border: hsl(145 63% 42% / 0.1);
+    
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 145 15% 25%;
+    --sidebar-primary: 145 63% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 145 10% 96%;
+    --sidebar-accent-foreground: 145 15% 15%;
+    --sidebar-border: 145 15% 88%;
+    --sidebar-ring: 145 63% 42%;
+  }
+
+  .dark {
+    --background: 145 20% 8%;
+    --foreground: 145 10% 95%;
+
+    --card: 145 20% 10%;
+    --card-foreground: 145 10% 95%;
+
+    --popover: 145 20% 10%;
+    --popover-foreground: 145 10% 95%;
+
+    --primary: 145 63% 50%;
+    --primary-foreground: 145 20% 8%;
+    --primary-glow: 145 63% 60%;
+
+    --secondary: 217 91% 65%;
+    --secondary-foreground: 145 20% 8%;
+    --secondary-glow: 217 91% 75%;
+
+    --muted: 145 20% 15%;
+    --muted-foreground: 145 10% 60%;
+
+    --accent: 38 92% 55%;
+    --accent-foreground: 145 20% 8%;
+    --accent-glow: 38 92% 70%;
+
+    --destructive: 0 84% 50%;
+    --destructive-foreground: 145 10% 95%;
+
+    --border: 145 20% 20%;
+    --input: 145 20% 20%;
+    --ring: 145 63% 50%;
+
+    --glass-bg: hsl(145 20% 10% / 0.7);
+    --glass-border: hsl(145 63% 50% / 0.2);
+
+    --sidebar-background: 145 20% 10%;
+    --sidebar-foreground: 145 10% 90%;
+    --sidebar-primary: 145 63% 50%;
+    --sidebar-primary-foreground: 145 20% 8%;
+    --sidebar-accent: 145 20% 15%;
+    --sidebar-accent-foreground: 145 10% 90%;
+    --sidebar-border: 145 20% 20%;
+    --sidebar-ring: 145 63% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  /* Glass effect utility */
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    background: var(--gradient-hero);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Animated gradient background */
+  .animated-gradient {
+    background: linear-gradient(
+      -45deg,
+      hsl(145 63% 42%),
+      hsl(217 91% 60%),
+      hsl(145 63% 55%),
+      hsl(217 91% 70%)
+    );
+    background-size: 400% 400%;
+    animation: gradient-shift 15s ease infinite;
+  }
+
+  @keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Fade in animation */
+  .fade-in {
+    animation: fadeIn 0.6s ease-in;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Pulse glow */
+  .pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 20px hsl(145 63% 55% / 0.3); }
+    50% { box-shadow: 0 0 40px hsl(145 63% 55% / 0.6); }
+  }
+}
