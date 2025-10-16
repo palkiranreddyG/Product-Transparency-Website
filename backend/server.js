@@ -35,10 +35,11 @@ import { initDatabase } from './config/database.js';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Security headers
+// ------------------------------------
+// Security & Rate Limiting
+// ------------------------------------
 app.use(helmet());
 
-// Rate limiting (avoid abuse)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit per IP
@@ -47,34 +48,45 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // ------------------------------------
-// CORS Configuration
+// ✅ Updated CORS Configuration
 // ------------------------------------
-const corsOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(',')
-  : [
-      'http://localhost:8080',
-      'http://localhost:8081',
-      'http://localhost:8082',
-      'http://localhost:8084',
-      'https://clearchoice-insight.vercel.app',
-      'https://*.vercel.app'
-    ];
 
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // allow non-browser requests
-    const isAllowed = corsOrigins.some(allowedOrigin => {
-      if (allowedOrigin.includes('*')) {
-        const pattern = allowedOrigin.replace(/\*/g, '.*');
-        return new RegExp(pattern).test(origin);
+// Step 1: Load allowed origins from .env
+// Example: CORS_ORIGIN=http://localhost:8080,https://clearchoice-insight.vercel.app
+const allowedOrigins = (process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
+
+// Step 2: Apply dynamic CORS middleware
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like Postman, curl)
+      if (!origin) return callback(null, true);
+
+      // Allow if origin matches any allowedOrigins
+      const isAllowed = allowedOrigins.some(allowed => {
+        if (allowed.includes('*')) {
+          const pattern = new RegExp(`^${allowed.replace(/\*/g, '.*')}$`);
+          return pattern.test(origin);
+        }
+        return origin === allowed;
+      });
+
+      if (isAllowed) {
+        return callback(null, true);
+      } else {
+        console.warn(`❌ CORS blocked: ${origin}`);
+        return callback(new Error('Not allowed by CORS'));
       }
-      return allowedOrigin === origin;
-    });
-    if (isAllowed) callback(null, true);
-    else callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true
-}));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    optionsSuccessStatus: 200, // Fix for legacy browsers
+  })
+);
 
 // ------------------------------------
 // Middleware
@@ -89,7 +101,7 @@ app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
     message: 'ClearChoice Insight API is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -107,7 +119,7 @@ app.use('/api/reports', reportRoutes);
 app.use('*', (req, res) => {
   res.status(404).json({
     error: 'Endpoint not found',
-    message: `The endpoint ${req.method} ${req.originalUrl} does not exist`
+    message: `The endpoint ${req.method} ${req.originalUrl} does not exist`,
   });
 });
 
@@ -115,10 +127,13 @@ app.use('*', (req, res) => {
 // Global Error Handler
 // ------------------------------------
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
+  console.error('Error:', err.message);
   res.status(500).json({
     error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+    message:
+      process.env.NODE_ENV === 'development'
+        ? err.message
+        : 'Something went wrong',
   });
 });
 
@@ -134,6 +149,7 @@ const startServer = async () => {
       console.log(`🚀 ClearChoice Insight API running on port ${PORT}`);
       console.log(`📊 Health check: http://localhost:${PORT}/health`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`🔗 Allowed CORS Origins: ${allowedOrigins.join(', ') || 'None set'}`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error.message);

@@ -32,5 +32,9 @@
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "mongodb": "^6.9.0",
+    "mongoose": "^8.8.1"
   }
 }
