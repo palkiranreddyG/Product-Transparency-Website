@@ -12,13 +12,19 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 
 // ------------------------------------
-// Load Environment Variables Safely
+// Load Environment Variables (Safe for Local + Render)
 // ------------------------------------
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Explicitly load the .env file even when started from root (via start-dev.bat)
-dotenv.config({ path: path.join(__dirname, '.env') });
+// Try loading local .env for development, but don't exit if missing
+try {
+  const envPath = path.join(__dirname, '.env');
+  dotenv.config({ path: envPath });
+  console.log('✅ Environment variables loaded successfully (local or Render)');
+} catch (err) {
+  console.warn('⚠️ Could not load .env file (Render uses dashboard vars)');
+}
 
 // ------------------------------------
 // Import Routes and Database
@@ -42,30 +48,23 @@ app.use(helmet());
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit per IP
-  message: 'Too many requests from this IP, please try again later.'
+  max: 100,
+  message: 'Too many requests from this IP, please try again later.',
 });
 app.use(limiter);
 
 // ------------------------------------
 // ✅ Updated CORS Configuration
 // ------------------------------------
-
-// Step 1: Load allowed origins from .env
-// Example: CORS_ORIGIN=http://localhost:8080,https://clearchoice-insight.vercel.app
 const allowedOrigins = (process.env.CORS_ORIGIN || '')
   .split(',')
   .map(o => o.trim())
   .filter(Boolean);
 
-// Step 2: Apply dynamic CORS middleware
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like Postman, curl)
       if (!origin) return callback(null, true);
-
-      // Allow if origin matches any allowedOrigins
       const isAllowed = allowedOrigins.some(allowed => {
         if (allowed.includes('*')) {
           const pattern = new RegExp(`^${allowed.replace(/\*/g, '.*')}$`);
@@ -73,18 +72,16 @@ app.use(
         }
         return origin === allowed;
       });
-
-      if (isAllowed) {
-        return callback(null, true);
-      } else {
+      if (isAllowed) callback(null, true);
+      else {
         console.warn(`❌ CORS blocked: ${origin}`);
-        return callback(new Error('Not allowed by CORS'));
+        callback(new Error('Not allowed by CORS'));
       }
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    optionsSuccessStatus: 200, // Fix for legacy browsers
+    optionsSuccessStatus: 200,
   })
 );
 
@@ -153,7 +150,6 @@ const startServer = async () => {
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error.message);
-    process.exit(1);
   }
 };
 
