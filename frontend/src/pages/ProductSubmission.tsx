@@ -5,17 +5,20 @@ import {
   CheckCircle2,
   Loader2,
   Download,
+  LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { jsPDF } from "jspdf";
 import { BasicInfoStep } from "@/components/submission/BasicInfoStep";
 import { CategoryStep } from "@/components/submission/CategoryStep";
 import { useProductSubmission } from "@/hooks/useProductSubmission";
+import { validateStep } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 const TOTAL_STEPS = 5;
 
@@ -42,6 +45,9 @@ const ProductSubmission = () => {
     setResponses,
   } = useProductSubmission();
 
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
   const progress = (currentStep / TOTAL_STEPS) * 100;
 
   /** STEP 3 Auto-fetch questions when productId becomes available */
@@ -59,6 +65,12 @@ const ProductSubmission = () => {
 
   /** NEXT Button flow */
   const handleNext = async () => {
+    // Validate current step before proceeding
+    if (!validateStep(currentStep, formData, responses, questions)) {
+      window.alert("⚠️ Please fill or answer all questions before continuing.");
+      return;
+    }
+
     if (currentStep === 2) {
       const created = await createProduct(formData);
       if (created?.id) setCurrentStep(3);
@@ -75,8 +87,24 @@ const ProductSubmission = () => {
     if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
 
+  /** Logout handler */
+  const handleLogout = () => {
+    localStorage.removeItem('cci_token');
+    toast({
+      title: "Logged out successfully",
+      description: "You have been logged out of your account.",
+    });
+    navigate("/");
+  };
+
   /** Generate PDF Download */
   const handleGenerateReport = async () => {
+    // Validate all steps before generating report
+    if (!validateStep(5, formData, responses, questions)) {
+      window.alert("⚠️ Please fill or answer all questions before continuing.");
+      return;
+    }
+
     try {
       const doc = new jsPDF();
       let y = 20;
@@ -173,9 +201,19 @@ const ProductSubmission = () => {
       {/* HEADER */}
       <div className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Back to Home
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link to="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <ArrowLeft className="h-4 w-4" /> Back to Home
+            </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="gap-2 bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 hover:from-red-600 hover:to-pink-600 shadow-lg hover:shadow-xl transition-all duration-300 animate-pulse hover:animate-none"
+            >
+              <LogOut className="h-4 w-4" /> Logout
+            </Button>
+          </div>
           <span className="text-sm font-medium">
             Step {currentStep} of {TOTAL_STEPS}
           </span>
