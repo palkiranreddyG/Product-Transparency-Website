@@ -1,11 +1,10 @@
 // frontend/src/services/api.ts
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  (import.meta.env.PROD
-    ? "https://clearchoice-insight-backend.vercel.app"
-    : "http://localhost:3001");
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+if (!API_BASE_URL) {
+  throw new Error("VITE_API_URL is not set");
+}
 
 export interface CreateProductRequest {
   productName: string;
