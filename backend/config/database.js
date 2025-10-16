@@ -1,10 +1,7 @@
 /**
- * ClearChoice Insight — MongoDB Database Configuration
- * ----------------------------------------------------
- * This version guarantees .env loading in all cases:
- * - Works when launched from root via start-dev.bat
- * - Works when running directly inside /backend
- * - Handles OneDrive paths and encoding issues
+ * ClearChoice Insight — MongoDB Database Configuration (Render Safe)
+ * ------------------------------------------------------------------
+ * Works both locally (with .env) and in production (Render dashboard vars)
  */
 
 import mongoose from 'mongoose';
@@ -21,35 +18,24 @@ const __dirname = dirname(__filename);
 const envPath = path.resolve(__dirname, '..', '.env');
 
 // ---------------------------------------------
-// Verify .env file exists and load it
+// Try loading .env file locally, but do NOT exit if missing
 // ---------------------------------------------
-if (!fs.existsSync(envPath)) {
-  console.error(`❌ .env file not found at ${envPath}`);
-  console.error('👉 Please create backend/.env and add MONGODB_URI there.');
-  process.exit(1);
-}
-
-dotenv.config({ path: envPath });
-
-// ---------------------------------------------
-// Debug print (for sanity check)
-// ---------------------------------------------
-console.log('🧭 Using environment file:', envPath);
-if (process.env.MONGODB_URI) {
-  console.log('🔍 MONGODB_URI: Loaded ✅');
+if (fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath });
+  console.log(`🧭 Using local .env file: ${envPath}`);
 } else {
-  console.log('🔍 MONGODB_URI: ❌ Missing — check backend/.env');
+  dotenv.config();
+  console.log('✅ Using Render environment variables (no .env file found)');
 }
 
 // ---------------------------------------------
-// MongoDB connection configuration
+// Verify MongoDB URI presence
 // ---------------------------------------------
 const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI;
 
 if (!MONGODB_URI) {
-  console.error('❌ Environment variable MONGODB_URI or MONGO_URI not set.');
-  console.error('👉 Please add it to backend/.env');
-  process.exit(1);
+  console.warn('⚠️ MONGODB_URI not found in environment variables.');
+  console.warn('Render will fail if not configured in dashboard Environment tab.');
 }
 
 // ---------------------------------------------
